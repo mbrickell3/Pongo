@@ -18,9 +18,9 @@ def main(argv):
 		for atoms in traj:
 			atom_dict = atoms_to_dict(atoms)
 			print(dict_to_atoms(atom_dict))
-			calc_dict = calc_to_dict(atoms)
-			meta_dict = format_metadata()
-			y = OrderedDict([("metadata", meta_dict), ("atoms",atom_dict), ("calculator",calc_dict)])
+			#calc_dict = calc_to_dict(atoms)
+			#meta_dict = format_metadata()
+			y = OrderedDict([("atoms",atom_dict)])
 			#out.write(dumps(y))
 			#List = dumps(y)
 			#print(List)
