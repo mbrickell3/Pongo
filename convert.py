@@ -2,10 +2,11 @@ from pickle import load
 from ase import Atoms
 from pymatgen.core.structure import Structure
 from pymatgen.io.ase import AseAtomsAdaptor
-from utilities import atoms_to_dict, MyEncoder
+from utilities import atoms_to_dict, MyEncoder, format_metadata
 from collections import OrderedDict
 import json
 import os.path
+import hashlib
 
 def pcklfile_to_dict():
     l = load(open('refingerprinted_database.pckl','r'))
@@ -18,13 +19,17 @@ def dict_to(dictionary):
         if (isinstance(y, dict) == False):
             w = AseAtomsAdaptor.get_atoms(y)
             z = atoms_to_dict(w)
-            add_everything_to_dict(key, dictionary[key], z)
+            atom_hash = get_hash(w)
+            add_everything_to_dict(key, dictionary[key], z, atom_hash)
         else:
             y = dictionary[key]['surface']
-            add_everything_to_dict(key, dictionary[key], y)
+            w = AseAtomsAdaptor.get_atoms(Structure.from_dict(y))
+            z = atoms_to_dict(w)
+            atom_hash = get_hash(w)
+            add_everything_to_dict(key, dictionary[key], z, atom_hash)
 
-def add_everything_to_dict(elem, dictionary, atoms_dict):
-    newDict = {'surface' : atoms_dict}
+def add_everything_to_dict(elem, dictionary, atoms_dict, atom_hash = None):
+    newDict = {'surface' : atoms_dict, 'hash' : atom_hash, 'metadata' : format_metadata()}
     file = elem + '.json'
     os_path = os.path.abspath('~') + '/json'
     script_path = os.path.dirname(os.path.abspath( 'convert.py' )) + '/json'
@@ -35,7 +40,20 @@ def add_everything_to_dict(elem, dictionary, atoms_dict):
                 newDict[key] = dictionary[key]
         y = OrderedDict({elem : newDict})
         json.dump(y, out, cls = MyEncoder)
+
+def get_hash(atoms):
+  string = str(atoms.pbc)
+  for number in atoms.cell.flatten():
+    string += '%.15f' % number
+#  for number in atoms.get_atomic_number():
+#    string += '%3d' % number
+#  for number in atoms.get_positions():
+#    string += '%.15f' % number
   
+  md5 = hashlib.md5(string.encode('utf-8'))
+  hash = md5.hexdigest()
+  return hash
+
 def main():
     diction = pcklfile_to_dict()
     dict_to(diction)
