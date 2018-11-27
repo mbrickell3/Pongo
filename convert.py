@@ -18,13 +18,14 @@ def dict_to(dictionary):
         if (isinstance(y, dict) == False):
             w = AseAtomsAdaptor.get_atoms(y)
             z = atoms_to_dict(w)
-            add_everything_to_dict(key, dictionary[key], z)
+            atom_hash = get_hash(w)
+            add_everything_to_dict(key, dictionary[key], z, atom_hash)
         else:
             y = dictionary[key]['surface']
             add_everything_to_dict(key, dictionary[key], y)
 
-def add_everything_to_dict(elem, dictionary, atoms_dict):
-    newDict = {'surface' : atoms_dict}
+def add_everything_to_dict(elem, dictionary, atoms_dict, atom_hash = null):
+    newDict = {'surface' : atoms_dict, 'hash' : atom_hash}
     file = elem + '.json'
     os_path = os.path.abspath('~') + '/json'
     script_path = os.path.dirname(os.path.abspath( 'convert.py' )) + '/json'
@@ -35,7 +36,20 @@ def add_everything_to_dict(elem, dictionary, atoms_dict):
                 newDict[key] = dictionary[key]
         y = OrderedDict({elem : newDict})
         json.dump(y, out, cls = MyEncoder)
+
+def get_hash(atoms):
+  string = str(atoms.pbc)
+  for number in atoms.cell.flatten():
+    string += '%.15f' % number
+  for number in atoms.get_atomic_number():
+    string += '%3d' % number
+  for number in atoms.get_positions():
+    string += '%.15f' % number
   
+  md5 = hashlib.md5(string.encode('utf-8'))
+  hash = md5.hexdigest()
+  return hash
+
 def main():
     diction = pcklfile_to_dict()
     dict_to(diction)
