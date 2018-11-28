@@ -4,12 +4,13 @@ from pymatgen.core.structure import Structure
 from pymatgen.io.ase import AseAtomsAdaptor
 from utilities import atoms_to_dict, MyEncoder, format_metadata
 from collections import OrderedDict
+import sys
 import json
 import os.path
 import hashlib
 
-def pcklfile_to_dict():
-    l = load(open('refingerprinted_database.pckl','r'))
+def pcklfile_to_dict(pckl_file):
+    l = load(open(pckl_file,'r'))
     return l
 
 def dict_to(dictionary):
@@ -31,8 +32,8 @@ def dict_to(dictionary):
 def add_everything_to_dict(elem, dictionary, atoms_dict, atom_hash = None):
     newDict = {'surface' : atoms_dict, 'hash' : atom_hash, 'metadata' : format_metadata()}
     file = elem + '.json'
-    os_path = os.path.abspath('~') + '/json'
-    script_path = os.path.dirname(os.path.abspath( 'convert.py' )) + '/json'
+    os_path = os.path.abspath('~') + '/pckl_json'
+    script_path = os.path.dirname(os.path.abspath( 'convert.py' )) + '/pckl_json'
     completeName = os.path.join(script_path, file)
     with open(completeName, 'w') as out:
         for key in dictionary.keys():
@@ -54,9 +55,9 @@ def get_hash(atoms):
   hash = md5.hexdigest()
   return hash
 
-def main():
-    diction = pcklfile_to_dict()
+def main(argv):
+    diction = pcklfile_to_dict(sys.argv[1])
     dict_to(diction)
     
 if __name__== "__main__":
-    main()
+    main(sys.argv[1:])
